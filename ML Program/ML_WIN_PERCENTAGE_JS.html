@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hero Win Percentage Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212; /* Dark background */
+            color: #e0e0e0; /* Light text color */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column; /* Stack elements vertically */
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            text-align: center;
+            background-color: #1e1e1e; /* Darker container background */
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            margin-bottom: 20px; /* Space between container and table */
+        }
+        h1 {
+            color: #ffffff; /* White text for the heading */
+        }
+        label {
+            font-size: 18px;
+            margin: 10px;
+            display: block;
+            color: #e0e0e0; /* Light text color for labels */
+        }
+        input[type="file"], input[type="text"] {
+            padding: 8px;
+            margin: 8px 0;
+            font-size: 16px;
+            background-color: #333; /* Dark input background */
+            color: #e0e0e0; /* Light text color for input */
+            border: 1px solid #444; /* Dark border */
+            border-radius: 5px;
+        }
+        input[type="file"]:focus, input[type="text"]:focus {
+            border-color: #4CAF50; /* Highlight border on focus */
+            outline: none; /* Remove default outline */
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50; /* Button background */
+            color: white; /* Button text color */
+            border: none;
+            border-radius: 5px;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #45a049; /* Button hover color */
+        }
+        #resultArea {
+            margin: 20px;
+            padding: 10px;
+            background-color: #3C3F41;
+            border: 2px solid white;
+            border-radius: 5px;
+            max-height: 300px;
+            overflow-y: auto;
+            width: 80%; /* Set a fixed width for the result area */
+            max-width: 600px; /* Maximum width for the result area */
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Hero Win Percentage Calculator</h1>
+    <p>Upload a CSV file with hero stats and enter two hero names to calculate their win percentages.</p>
+    <label for="csvFile">Upload Hero Data File (CSV):</label>
+    <input type="file" id="csvFile" accept=".csv" />
+    
+    <label for="hero1">Hero 1:</label>
+    <input type="text" id="hero1" placeholder="Enter Hero 1 Name">
+    
+    <label for="hero2">Hero 2:</label>
+    <input type="text" id="hero2" placeholder="Enter Hero 2 Name">
+
+    <br>
+    
+    <button id="uploadButton">Upload CSV</button>
+    <button id="calculateButton">Calculate Win Percentage</button>
+</div>
+
+<div id="resultArea"></div>
+
+<script>
+    let heroStatsMap = {};
+
+    document.getElementById('uploadButton').addEventListener('click', uploadCSV);
+    document.getElementById('calculateButton').addEventListener('click', calculateWinPercentage);
+
+    function uploadCSV() {
+        const fileInput = document.getElementById('csvFile');
+        const file = fileInput.files[0];
+        if (!file) {
+            alert("Please select a CSV file.");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const lines = event.target.result.split('\n');
+            heroStatsMap = {}; // Clear existing stats
+            for (let i = 1; i < lines.length; i++) { // Skip header
+                const values = lines[i].split(',');
+                if (values.length >= 14) { // Ensure there are enough columns
+                    const heroName = values[0].trim().toLowerCase();
+                    const stats = values.slice(6, 14).map(Number); // Get relevant stats
+                    heroStatsMap[heroName] = stats;
+                }
+            }
+            document.getElementById('resultArea').innerText += "File successfully uploaded!\n";
+        };
+        reader.readAsText(file);
+    }
+
+    function calculateWinPercentage() {
+        const hero1 = document.getElementById('hero1').value.trim().toLowerCase();
+        const hero2 = document.getElementById('hero2').value.trim().toLowerCase();
+
+        if (!heroStatsMap[hero1] || !heroStatsMap[hero2]) {
+            document.getElementById('resultArea').innerText += "One or both heroes not found. Please upload the CSV file again.\n";
+            return;
+        }
+
+        const stats1 = heroStatsMap[hero1];
+        const stats2 = heroStatsMap[hero2];
+
+        const score1 = calculateScore(stats1);
+        const score2 = calculateScore(stats2);
+
+        const totalScore = score1 + score2;
+        const winPercentage1 = (score1 / totalScore) * 100;
+        const winPercentage2 = (score2 / totalScore) * 100;
+
+        let resultText = `${capitalize(hero1)} Win Percentage: ${winPercentage1.toFixed(2)}%\n`;
+        resultText += `${capitalize(hero2)} Win Percentage: ${winPercentage2.toFixed(2)}%\n\n`;
+        resultText += "Stat Comparison:\n";
+        resultText += "--------------------------------------------------\n";
+
+        const statNames = ["Movement Speed", "Magic Defense", "Mana", "HP Regen", "Physical Attack", "Physical Defense", "HP", "Attack Speed"];
+        for (let i = 0; i < statNames.length; i++) {
+            const stat1 = stats1[i];
+            const stat2 = stats2[i];
+            let comparison;
+
+            if (stat1 > stat2) {
+                comparison = `${capitalize(hero1)} has ${(stat1 - stat2).toFixed(2)} more than ${capitalize(hero2)} (${stat1.toFixed(2)} vs ${stat2.toFixed(2)})`;
+            } else if (stat2 > stat1) {
+                comparison = `${capitalize(hero2)} has ${(stat2 - stat1).toFixed(2)} more than ${capitalize(hero1)} (${stat2.toFixed(2)} vs ${stat1.toFixed(2)})`;
+            } else {
+                comparison = `Both heroes have the same ${statNames[i]} (${stat1.toFixed(2)})`;
+            }
+
+            resultText += `${statNames[i]}: ${comparison}\n`;
+        }
+        resultText += "--------------------------------------------------\n";
+        document.getElementById('resultArea').innerText += resultText;
+    }
+
+    function calculateScore(stats) {
+        return stats[0] * 0.2 + stats[1] * 0.15 + stats[2] * 0.1 + stats[3] * 0.1 +
+               stats[4] * 0.25 + stats[5] * 0.1 + stats[6] * 0.1 + stats[7] * 0.05;
+    }
+
+    function capitalize(name) {
+        return name.charAt(0).toUpperCase() + name.slice(1);
+    }
+</script>
+
+</body>
+</html>
