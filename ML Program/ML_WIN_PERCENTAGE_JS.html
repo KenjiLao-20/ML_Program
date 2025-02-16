@@ -33,7 +33,7 @@
             display: block;
             color: #e0e0e0; /* Light text color for labels */
         }
-        input[type="file"], input[type="text"] {
+        input[type="file"] {
             padding: 8px;
             margin: 8px 0;
             font-size: 16px;
@@ -41,10 +41,6 @@
             color: #e0e0e0; /* Light text color for input */
             border: 1px solid #444; /* Dark border */
             border-radius: 5px;
-        }
-        input[type="file"]:focus, input[type="text"]:focus {
-            border-color: #4CAF50; /* Highlight border on focus */
-            outline: none; /* Remove default outline */
         }
         button {
             padding: 10px 20px;
@@ -76,15 +72,15 @@
 
 <div class="container">
     <h1>Hero Win Percentage Calculator</h1>
-    <p>Upload a CSV file with hero stats and enter two hero names to calculate their win percentages.</p>
+    <p>Upload a CSV file with hero stats and select two heroes to calculate their win percentages.</p>
     <label for="csvFile">Upload Hero Data File (CSV):</label>
     <input type="file" id="csvFile" accept=".csv" />
     
-    <label for="hero1">Hero 1:</label>
-    <input type="text" id="hero1" placeholder="Enter Hero 1 Name">
-    
-    <label for="hero2">Hero 2:</label>
-    <input type="text" id="hero2" placeholder="Enter Hero 2 Name">
+    <label for="hero1">Select Hero 1:</label>
+    <select id="hero1"></select>
+
+    <label for="hero2">Select Hero 2:</label>
+    <select id="hero2"></select>
 
     <br>
     
@@ -112,12 +108,30 @@
         reader.onload = function(event) {
             const lines = event.target.result.split('\n');
             heroStatsMap = {}; // Clear existing stats
+            const heroSelect1 = document.getElementById('hero1');
+            const heroSelect2 = document.getElementById('hero2');
+
+            // Clear previous options
+            heroSelect1.innerHTML = '';
+            heroSelect2.innerHTML = '';
+
             for (let i = 1; i < lines.length; i++) { // Skip header
                 const values = lines[i].split(',');
                 if (values.length >= 14) { // Ensure there are enough columns
                     const heroName = values[0].trim().toLowerCase();
                     const stats = values.slice(6, 14).map(Number); // Get relevant stats
                     heroStatsMap[heroName] = stats;
+
+                    // Create option elements for the dropdowns
+                    const option1 = document.createElement('option');
+                    option1.value = heroName;
+                    option1.textContent = capitalize(heroName);
+                    heroSelect1.appendChild(option1);
+
+                    const option2 = document.createElement('option');
+                    option2.value = heroName;
+                    option2.textContent = capitalize(heroName);
+                    heroSelect2.appendChild(option2);
                 }
             }
             document.getElementById('resultArea').innerText += "File successfully uploaded!\n";
@@ -147,7 +161,7 @@
         let resultText = `${capitalize(hero1)} Win Percentage: ${winPercentage1.toFixed(2)}%\n`;
         resultText += `${capitalize(hero2)} Win Percentage: ${winPercentage2.toFixed(2)}%\n\n`;
         resultText += "Stat Comparison:\n";
-        resultText += "--------------------------------------------------\n";
+        resultText += "-------------------------------------------------------------------------------------------------------------\n";
 
         const statNames = ["Movement Speed", "Magic Defense", "Mana", "HP Regen", "Physical Attack", "Physical Defense", "HP", "Attack Speed"];
         for (let i = 0; i < statNames.length; i++) {
@@ -165,7 +179,7 @@
 
             resultText += `${statNames[i]}: ${comparison}\n`;
         }
-        resultText += "--------------------------------------------------\n";
+        resultText += "-------------------------------------------------------------------------------------------------------------\n";
         document.getElementById('resultArea').innerText += resultText;
     }
 
