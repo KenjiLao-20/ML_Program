@@ -11,8 +11,6 @@ import java.awt.event.ComponentEvent;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 public class MLProgram extends JFrame {
 
@@ -58,8 +56,20 @@ public class MLProgram extends JFrame {
                 new LineBorder(Color.WHITE, 2), "Hero Names and HP", TitledBorder.LEFT, TitledBorder.TOP,
                 new Font("Arial", Font.BOLD, 14), Color.WHITE));
 
-        // Create a panel for the button with FlowLayout
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT)); // Align to the left
+        // Create a panel for the button with GridBagLayout
+        JPanel buttonPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.gridx = 0; // Column 0 for the label
+        gbc.weightx = 1; // Allow label to take available space
+        gbc.insets = new Insets(5, 5, 5, 5); // Add some padding
+
+        // Add instruction label
+        JLabel instructionLabel = new JLabel("Display the names of all heroes in lowercase along with their HP values.");
+        instructionLabel.setForeground(Color.WHITE); // Set label color
+        buttonPanel.add(instructionLabel, gbc); // Add label to the panel
+
+        // Create and add the upload button
         uploadButton = new JButton("Upload CSV");
         uploadButton.setFocusPainted(false);
         uploadButton.setPreferredSize(new Dimension(100, 30)); // Set preferred size for the button (narrower)
@@ -71,7 +81,9 @@ public class MLProgram extends JFrame {
         });
 
         // Add the button to the panel
-        buttonPanel.add(uploadButton);
+        gbc.gridx = 1; // Column 1 for the button
+        gbc.weightx = 0; // Button does not need to take extra space
+        buttonPanel.add(uploadButton, gbc);
 
         // Add components to the frame
         add(buttonPanel, BorderLayout.NORTH);
