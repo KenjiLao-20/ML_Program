@@ -14,8 +14,8 @@ import javax.swing.border.TitledBorder;
 
 public class ML_WIN_PERCENTAGE extends JFrame {
 
-    private JTextField hero1Field;
-    private JTextField hero2Field;
+    private JComboBox<String> hero1ComboBox;
+    private JComboBox<String> hero2ComboBox;
     private JButton uploadButton;
     private JButton calculateButton;
     private JTextArea resultArea;
@@ -41,15 +41,15 @@ public class ML_WIN_PERCENTAGE extends JFrame {
         JPanel inputPanel = new JPanel();
         inputPanel.setLayout(new GridLayout(3, 2)); // 3 rows, 2 columns
 
-        // Hero 1 input
+        // Hero 1 selection
         inputPanel.add(new JLabel("Hero 1:"));
-        hero1Field = new JTextField();
-        inputPanel.add(hero1Field);
+        hero1ComboBox = new JComboBox<>();
+        inputPanel.add(hero1ComboBox);
 
-        // Hero 2 input
+        // Hero 2 selection
         inputPanel.add(new JLabel("Hero 2:"));
-        hero2Field = new JTextField();
-        inputPanel.add(hero2Field);
+        hero2ComboBox = new JComboBox<>();
+        inputPanel.add(hero2ComboBox);
 
         // Upload button
         uploadButton = new JButton("Upload CSV");
@@ -97,6 +97,8 @@ public class ML_WIN_PERCENTAGE extends JFrame {
                 String line;
                 br.readLine(); // Skip header
                 heroStatsMap.clear(); // Clear existing stats
+                hero1ComboBox.removeAllItems(); // Clear previous items
+                hero2ComboBox.removeAllItems(); // Clear previous items
                 while ((line = br.readLine()) != null) {
                     String[] values = line.split(",");
                     if (values.length >= 8) { // Ensure there are enough columns
@@ -115,6 +117,10 @@ public class ML_WIN_PERCENTAGE extends JFrame {
                                 movementSpd, magicDefense, mana, hpRegen,
                                 physicalAtk, physicalDefense, hp, attackSpeed
                         });
+
+                        // Add hero name to combo boxes
+                        hero1ComboBox.addItem(capitalize(heroName));
+                        hero2ComboBox.addItem(capitalize(heroName));
                     }
                 }
                 resultArea.append("File successfully uploaded!\n");
@@ -125,8 +131,8 @@ public class ML_WIN_PERCENTAGE extends JFrame {
     }
 
     private void calculateWinPercentage() {
-        String hero1 = hero1Field.getText().trim().toLowerCase();
-        String hero2 = hero2Field.getText().trim().toLowerCase();
+        String hero1 = hero1ComboBox.getSelectedItem().toString().trim().toLowerCase();
+        String hero2 = hero2ComboBox.getSelectedItem().toString().trim().toLowerCase();
 
         if (!heroStatsMap.containsKey(hero1) || !heroStatsMap.containsKey(hero2)) {
             resultArea.append("One or both heroes not found. Please upload the CSV file again.\n");
@@ -149,7 +155,7 @@ public class ML_WIN_PERCENTAGE extends JFrame {
 
         // Compare stats
         resultArea.append("Stat Comparison:\n");
-        resultArea.append("--------------------------------------------------\n");
+        resultArea.append("--------------------------------------------------------------------------------------------------------------------------------------------\n");
         String[] statNames = {"Movement Speed", "Magic Defense", "Mana", "HP Regen", "Physical Attack", "Physical Defense", "HP", "Attack Speed"};
         
         for (int i = 0; i < statNames.length; i++) {
@@ -169,7 +175,7 @@ public class ML_WIN_PERCENTAGE extends JFrame {
 
             resultArea.append(String.format("%s: %s\n", statNames[i], comparison));
         }
-        resultArea.append("--------------------------------------------------\n");
+        resultArea.append("--------------------------------------------------------------------------------------------------------------------------------------------\n");
     }
 
     private double calculateScore(double[] stats) {
